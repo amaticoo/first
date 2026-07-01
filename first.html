@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amaticoo — AI Automation Systems</title>
+<meta name="description" content="Amaticoo builds AI-powered automation systems with Claude and n8n — turning manual workflows into systems that run themselves.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&f[]=general-sans@400,500,600,700&display=swap">
+<style>
+  :root{
+    --bg:#050505;
+    --bg-elev:#0A0A0C;
+    --bg-elev-2:#111114;
+    --text:#F5F5F5;
+    --text-soft:#9A9A9F;
+    --text-faint:#5C5C61;
+    --accent:#3D7BFF;
+    --accent-2:#63E6FF;
+    --accent-soft:rgba(61,123,255,0.14);
+    --border:rgba(255,255,255,0.09);
+    --border-soft:rgba(255,255,255,0.05);
+    --glass:rgba(255,255,255,0.035);
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter', sans-serif;
+    font-size:16px;
+    line-height:1.65;
+    overflow-x:hidden;
+    position:relative;
+  }
+
+  /* grain texture */
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:9998;
+    pointer-events:none;
+    opacity:0.035;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  h1,h2,h3,h4{font-family:'Clash Display', sans-serif; font-weight:600; letter-spacing:-0.01em;}
+  .gs{font-family:'General Sans', sans-serif;}
+
+  a{color:inherit; text-decoration:none;}
+  img,video{max-width:100%; display:block;}
+
+  :focus-visible{outline:2px solid var(--accent-2); outline-offset:3px;}
+
+  .wrap{max-width:1240px; margin:0 auto; padding:0 32px;}
+
+  ::selection{background:var(--accent); color:#fff;}
+
+  /* ---------- scroll progress ---------- */
+  .scroll-progress{
+    position:fixed; top:0; left:0; height:2px;
+    background:linear-gradient(90deg, var(--accent), var(--accent-2));
+    width:0%; z-index:9999;
+    transition:width .1s linear;
+  }
+
+  /* ---------- cursor glow ---------- */
+  .cursor-glow{
+    position:fixed;
+    width:480px; height:480px;
+    border-radius:50%;
+    background:radial-gradient(circle, rgba(61,123,255,0.10) 0%, rgba(61,123,255,0) 70%);
+    pointer-events:none;
+    z-index:1;
+    transform:translate(-50%,-50%);
+    transition:opacity .3s ease;
+    top:0; left:0;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .cursor-glow{display:none;}
+    *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
+  }
+
+  /* ---------- nav ---------- */
+  nav{
+    position:fixed; top:0; left:0; right:0;
+    z-index:1000;
+    padding:20px 0;
+    backdrop-filter:blur(16px);
+    background:rgba(5,5,5,0.55);
+    border-bottom:1px solid var(--border-soft);
+  }
+  .nav-inner{display:flex; justify-content:space-between; align-items:center;}
+  .logo{
+    font-family:'Clash Display', sans-serif;
+    font-weight:700; font-size:19px; letter-spacing:-0.01em;
+  }
+  .logo span{color:var(--accent);}
+  .nav-links{display:flex; gap:36px; list-style:none;}
+  .nav-links a{
+    font-family:'General Sans', sans-serif;
+    font-size:14px; color:var(--text-soft);
+    transition:color .2s ease;
+    position:relative;
+  }
+  .nav-links a:hover{color:var(--text);}
+  .nav-cta{
+    font-family:'General Sans', sans-serif;
+    font-size:13px; font-weight:600;
+    padding:11px 22px;
+    border:1px solid var(--border);
+    border-radius:100px;
+    transition:all .25s ease;
+  }
+  .nav-cta:hover{background:var(--accent); border-color:var(--accent); box-shadow:0 0 24px rgba(61,123,255,0.4);}
+  .nav-toggle{display:none;}
+
+  /* ---------- magnetic button ---------- */
+  .magnetic{display:inline-block; will-change:transform;}
+
+  /* ---------- reveal ---------- */
+  .reveal{opacity:0; transform:translateY(28px); transition:opacity .8s cubic-bezier(.16,1,.3,1), transform .8s cubic-bezier(.16,1,.3,1);}
+  .reveal.visible{opacity:1; transform:translateY(0);}
+  .reveal-delay-1{transition-delay:.1s;}
+  .reveal-delay-2{transition-delay:.2s;}
+  .reveal-delay-3{transition-delay:.3s;}
+
+  /* ---------- hero ---------- */
+  .hero{
+    position:relative;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    padding:140px 0 80px;
+    overflow:hidden;
+  }
+  .hero-bg{
+    position:absolute; inset:0;
+    background:
+      radial-gradient(ellipse 800px 500px at 20% 20%, rgba(61,123,255,0.16), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 85% 60%, rgba(99,230,255,0.09), transparent 60%);
+    animation:drift 18s ease-in-out infinite alternate;
+    z-index:0;
+  }
+  @keyframes drift{
+    0%{transform:translate(0,0) scale(1);}
+    100%{transform:translate(-3%,2%) scale(1.05);}
+  }
+  .particle{
+    position:absolute;
+    width:3px; height:3px;
+    border-radius:50%;
+    background:var(--accent-2);
+    opacity:0.5;
+    animation:float-p linear infinite;
+  }
+  @keyframes float-p{
+    0%{transform:translateY(0) translateX(0); opacity:0;}
+    10%{opacity:.6;}
+    90%{opacity:.6;}
+    100%{transform:translateY(-100vh) translateX(20px); opacity:0;}
+  }
+
+  .hero-grid{
+    position:relative; z-index:2;
+    display:grid;
+    grid-template-columns:1.05fr 0.95fr;
+    gap:60px;
+    align-items:center;
+  }
+
+  .eyebrow{
+    font-family:'General Sans', sans-serif;
+    font-size:13px; font-weight:600;
+    text-transform:uppercase; letter-spacing:0.12em;
+    color:var(--accent-2);
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:28px;
+  }
+  .eyebrow::before{
+    content:""; width:7px; height:7px; border-radius:50%;
+    background:var(--accent-2);
+    box-shadow:0 0 12px var(--accent-2);
+    animation:pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse{0%,100%{opacity:1;} 50%{opacity:.3;}}
+
+  h1.hero-title{
+    font-size:clamp(38px, 5vw, 64px);
+    line-height:1.05;
+    letter-spacing:-0.02em;
+  }
+  h1.hero-title .accent-text{
+    background:linear-gradient(90deg, var(--accent), var(--accent-2));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .hero-sub{
+    margin-top:26px;
+    font-size:18px;
+    color:var(--text-soft);
+    max-width:46ch;
+  }
+  .hero-ctas{
+    margin-top:38px;
+    display:flex; gap:16px; flex-wrap:wrap;
+  }
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:15px 28px;
+    font-family:'General Sans', sans-serif;
+    font-size:14px; font-weight:600;
+    border-radius:100px;
+    transition:transform .2s ease, box-shadow .2s ease, background .2s ease;
+  }
+  .btn-primary{background:var(--accent); color:#fff;}
+  .btn-primary:hover{box-shadow:0 0 32px rgba(61,123,255,0.55); transform:translateY(-2px);}
+  .btn-ghost{border:1px solid var(--border); color:var(--text);}
+  .btn-ghost:hover{border-color:var(--text-soft); transform:translateY(-2px);}
+
+  .hero-stats{
+    margin-top:56px;
+    display:flex; gap:48px;
+  }
+  .stat-num{
+    font-family:'Clash Display', sans-serif;
+    font-size:32px; font-weight:600;
+    color:var(--text);
+  }
+  .stat-label{
+    font-family:'General Sans', sans-serif;
+    font-size:12px; color:var(--text-faint);
+    text-transform:uppercase; letter-spacing:0.05em;
+    margin-top:4px;
+  }
+
+  /* ---------- system preview panel (showreel equivalent) ---------- */
+  .preview-panel{
+    background:var(--bg-elev);
+    border:1px solid var(--border);
+    border-radius:20px;
+    padding:36px 28px;
+    position:relative;
+    transition:transform .4s cubic-bezier(.16,1,.3,1), box-shadow .4s ease, border-color .4s ease;
+    cursor:pointer;
+  }
+  .preview-panel:hover{
+    transform:scale(1.02) translateY(-6px);
+    box-shadow:0 20px 60px rgba(61,123,255,0.25);
+    border-color:rgba(61,123,255,0.4);
+  }
+  .preview-label{
+    font-family:'General Sans', sans-serif;
+    font-size:11px; text-transform:uppercase; letter-spacing:0.1em;
+    color:var(--text-faint);
+    display:flex; justify-content:space-between;
+    margin-bottom:28px;
+  }
+  .preview-label .rec{color:#FF5A5A; display:flex; align-items:center; gap:6px;}
+  .preview-label .rec::before{content:""; width:6px; height:6px; border-radius:50%; background:#FF5A5A; animation:pulse 1.4s infinite;}
+
+  .flow{position:relative; padding:20px 0;}
+  .flow-line{
+    position:absolute; top:50%; left:0; right:0; height:1px;
+    background:linear-gradient(90deg, transparent, var(--border), transparent);
+  }
+  .flow-nodes{display:flex; justify-content:space-between; position:relative; z-index:2;}
+  .flow-node{text-align:center; flex:1;}
+  .flow-dot{
+    width:12px; height:12px; border-radius:50%;
+    background:var(--bg-elev-2); border:2px solid var(--accent);
+    margin:0 auto 10px;
+    box-shadow:0 0 0 4px rgba(61,123,255,0.1);
+  }
+  .flow-node:nth-child(2) .flow-dot, .flow-node:nth-child(3) .flow-dot{border-color:var(--accent-2);}
+  .flow-signal{
+    position:absolute; top:calc(50% - 3px); left:0;
+    width:6px; height:6px; border-radius:50%;
+    background:var(--accent-2);
+    box-shadow:0 0 12px 3px var(--accent-2);
+    animation:travel 3.5s linear infinite;
+  }
+  @keyframes travel{0%{left:0%;} 100%{left:97%;}}
+  .flow-node-label{font-family:'General Sans', sans-serif; font-size:12px; font-weight:600;}
+  .flow-node-sub{font-family:'Inter', sans-serif; font-size:10px; color:var(--text-faint); margin-top:3px;}
+
+  .preview-caption{
+    margin-top:32px; padding-top:24px;
+    border-top:1px solid var(--border-soft);
+    font-size:14px; color:var(--text-soft);
+  }
+
+  /* ---------- section shared ---------- */
+  section{padding:120px 0; position:relative; z-index:2;}
+  .section-head{max-width:640px; margin-bottom:64px;}
+  .section-eyebrow{
+    font-family:'General Sans', sans-serif;
+    font-size:13px; font-weight:600;
+    text-transform:uppercase; letter-spacing:0.1em;
+    color:var(--accent-2);
+    margin-bottom:16px;
+  }
+  h2.section-title{font-size:clamp(28px, 3.6vw, 42px);}
+  .section-desc{margin-top:16px; color:var(--text-soft); font-size:16px;}
+
+  /* ---------- trust marquee ---------- */
+  .marquee-wrap{
+    border-top:1px solid var(--border-soft);
+    border-bottom:1px solid var(--border-soft);
+    padding:36px 0;
+    overflow:hidden;
+    position:relative;
+  }
+  .marquee-label{
+    text-align:center; font-family:'General Sans', sans-serif;
+    font-size:11px; text-transform:uppercase; letter-spacing:0.1em;
+    color:var(--text-faint); margin-bottom:28px;
+  }
+  .marquee-track{
+    display:flex; gap:80px;
+    width:max-content;
+    animation:scroll-marquee 28s linear infinite;
+  }
+  @keyframes scroll-marquee{
+    0%{transform:translateX(0);}
+    100%{transform:translateX(-50%);}
+  }
+  .marquee-item{
+    font-family:'Clash Display', sans-serif;
+    font-size:22px; font-weight:600;
+    color:var(--text-faint);
+    white-space:nowrap;
+    display:flex; align-items:center; gap:10px;
+    transition:color .3s ease;
+  }
+  .marquee-item:hover{color:var(--text);}
+  .marquee-item .dot{width:5px; height:5px; border-radius:50%; background:var(--accent); opacity:.5;}
+
+  /* ---------- capability grid ---------- */
+  .cap-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:1px;
+    background:var(--border-soft);
+    border:1px solid var(--border-soft);
+    border-radius:16px;
+    overflow:hidden;
+  }
+  .cap-card{
+    background:var(--bg-elev);
+    padding:36px 30px;
+    transition:background .3s ease, transform .3s ease;
+    position:relative;
+    overflow:hidden;
+  }
+  .cap-card::before{
+    content:"";
+    position:absolute; inset:0;
+    background:radial-gradient(400px circle at var(--mx,50%) var(--my,50%), rgba(61,123,255,0.12), transparent 60%);
+    opacity:0; transition:opacity .3s ease;
+    pointer-events:none;
+  }
+  .cap-card:hover::before{opacity:1;}
+  .cap-card:hover{background:var(--bg-elev-2); transform:translateY(-4px);}
+  .cap-icon{
+    width:42px; height:42px;
+    border-radius:10px;
+    background:var(--accent-soft);
+    display:flex; align-items:center; justify-content:center;
+    font-size:18px; margin-bottom:20px;
+    color:var(--accent-2);
+  }
+  .cap-card h3{font-size:18px; margin-bottom:10px;}
+  .cap-card p{color:var(--text-soft); font-size:14px;}
+
+  /* ---------- systems built (case studies) ---------- */
+  .case-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:24px;
+  }
+  .case-card{
+    background:var(--bg-elev);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:28px;
+    transition:transform .35s cubic-bezier(.16,1,.3,1), border-color .35s ease, box-shadow .35s ease;
+    cursor:pointer;
+  }
+  .case-card:hover{
+    transform:translateY(-8px);
+    border-color:rgba(61,123,255,0.4);
+    box-shadow:0 16px 40px rgba(61,123,255,0.15);
+  }
+  .case-thumb{
+    height:150px; border-radius:10px;
+    background:linear-gradient(135deg, var(--bg-elev-2), #16161A);
+    margin-bottom:20px;
+    display:flex; align-items:center; justify-content:center;
+    position:relative;
+    overflow:hidden;
+  }
+  .case-thumb .mini-flow{display:flex; gap:14px;}
+  .case-thumb .mini-dot{width:8px; height:8px; border-radius:50%; background:var(--accent); box-shadow:0 0 10px var(--accent);}
+  .case-meta{
+    display:flex; gap:10px; margin-bottom:10px;
+    font-family:'General Sans', sans-serif; font-size:11px;
+    text-transform:uppercase; letter-spacing:0.05em;
+    color:var(--text-faint);
+  }
+  .case-card h3{font-size:19px; margin-bottom:10px;}
+  .case-card p{color:var(--text-soft); font-size:14px;}
+  .case-tags{display:flex; gap:8px; flex-wrap:wrap; margin-top:18px;}
+  .case-tags span{
+    font-size:10px; font-family:'General Sans', sans-serif;
+    padding:5px 10px; border:1px solid var(--border); border-radius:100px;
+    color:var(--text-soft);
+  }
+  .case-note{
+    grid-column:1 / -1;
+    text-align:center; color:var(--text-faint);
+    font-size:13px; margin-top:8px;
+  }
+
+  /* ---------- results ---------- */
+  .results-grid{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:1px;
+    background:var(--border-soft);
+    border:1px solid var(--border-soft);
+    border-radius:16px;
+    overflow:hidden;
+  }
+  .result-card{
+    background:var(--bg-elev);
+    padding:40px 24px;
+    text-align:center;
+  }
+  .result-num{
+    font-family:'Clash Display', sans-serif;
+    font-size:38px; font-weight:600;
+    background:linear-gradient(90deg, var(--accent), var(--accent-2));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .result-label{
+    margin-top:10px; font-family:'General Sans', sans-serif;
+    font-size:12px; color:var(--text-soft);
+    text-transform:uppercase; letter-spacing:0.04em;
+  }
+
+  /* ---------- services glass ---------- */
+  .services-grid{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:20px;
+  }
+  .service-card{
+    background:var(--glass);
+    border:1px solid var(--border);
+    backdrop-filter:blur(10px);
+    border-radius:16px;
+    padding:28px 22px;
+    transition:transform .3s ease, background .3s ease, border-color .3s ease;
+  }
+  .service-card:hover{
+    transform:translateY(-6px);
+    background:rgba(255,255,255,0.06);
+    border-color:rgba(61,123,255,0.35);
+  }
+  .service-icon{font-size:22px; margin-bottom:16px; color:var(--accent-2);}
+  .service-card h3{font-size:16px; margin-bottom:8px;}
+  .service-card p{font-size:13px; color:var(--text-soft);}
+
+  /* ---------- FAQ ---------- */
+  .faq-list{max-width:760px;}
+  .faq-item{
+    border-bottom:1px solid var(--border-soft);
+  }
+  .faq-q{
+    width:100%; text-align:left;
+    padding:26px 0;
+    display:flex; justify-content:space-between; align-items:center;
+    background:none; border:none; color:var(--text);
+    font-family:'General Sans', sans-serif; font-size:17px; font-weight:500;
+    cursor:pointer;
+  }
+  .faq-icon{
+    width:22px; height:22px; flex-shrink:0;
+    position:relative;
+    transition:transform .3s ease;
+  }
+  .faq-icon::before, .faq-icon::after{
+    content:""; position:absolute;
+    background:var(--text-soft);
+  }
+  .faq-icon::before{width:100%; height:1px; top:50%; left:0;}
+  .faq-icon::after{width:1px; height:100%; left:50%; top:0; transition:opacity .3s ease;}
+  .faq-item.open .faq-icon{transform:rotate(180deg);}
+  .faq-item.open .faq-icon::after{opacity:0;}
+  .faq-a{
+    max-height:0; overflow:hidden;
+    transition:max-height .4s cubic-bezier(.16,1,.3,1), padding .4s ease;
+    color:var(--text-soft); font-size:15px;
+  }
+  .faq-item.open .faq-a{max-height:200px; padding-bottom:26px;}
+
+  /* ---------- contact ---------- */
+  .contact-section{
+    background:var(--bg-elev);
+    border-radius:24px;
+    border:1px solid var(--border);
+    padding:70px 60px;
+    position:relative;
+    overflow:hidden;
+  }
+  .contact-section::before{
+    content:"";
+    position:absolute; top:-40%; right:-10%;
+    width:500px; height:500px; border-radius:50%;
+    background:radial-gradient(circle, rgba(61,123,255,0.18), transparent 70%);
+  }
+  .contact-grid{
+    display:grid; grid-template-columns:0.9fr 1.1fr; gap:60px;
+    position:relative; z-index:2;
+  }
+  .contact-section h2{font-size:clamp(28px,3.6vw,40px);}
+  .contact-section p.section-desc{max-width:38ch;}
+  .form-row{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;}
+  .field{margin-bottom:16px;}
+  .field label{
+    display:block; font-family:'General Sans', sans-serif;
+    font-size:12px; text-transform:uppercase; letter-spacing:0.05em;
+    color:var(--text-faint); margin-bottom:8px;
+  }
+  .field input, .field select, .field textarea{
+    width:100%;
+    background:rgba(255,255,255,0.03);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:13px 14px;
+    color:var(--text);
+    font-family:'Inter', sans-serif; font-size:14px;
+    transition:border-color .2s ease, background .2s ease;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{
+    outline:none; border-color:var(--accent); background:rgba(61,123,255,0.05);
+  }
+  .field textarea{resize:vertical; min-height:100px;}
+  .submit-btn{width:100%; justify-content:center; margin-top:8px; border:none; cursor:pointer;}
+
+  .form-success{
+    display:none;
+    text-align:center; padding:60px 20px;
+  }
+  .form-success.show{display:block;}
+  .form-success .check{
+    width:64px; height:64px; border-radius:50%;
+    background:var(--accent-soft);
+    display:flex; align-items:center; justify-content:center;
+    margin:0 auto 20px;
+    font-size:28px; color:var(--accent-2);
+    animation:pop .4s cubic-bezier(.16,1,.5,1.4);
+  }
+  @keyframes pop{0%{transform:scale(0);} 100%{transform:scale(1);}}
+
+  /* ---------- footer ---------- */
+  footer{
+    padding:80px 0 40px;
+    position:relative;
+    overflow:hidden;
+  }
+  .footer-glow{
+    position:absolute; bottom:-20%; left:50%; transform:translateX(-50%);
+    width:800px; height:300px;
+    background:radial-gradient(ellipse, rgba(61,123,255,0.12), transparent 70%);
+    z-index:0;
+  }
+  .footer-top{
+    display:flex; justify-content:space-between; align-items:flex-start;
+    padding-bottom:60px; border-bottom:1px solid var(--border-soft);
+    position:relative; z-index:2; flex-wrap:wrap; gap:40px;
+  }
+  .footer-brand h3{font-size:26px; margin-bottom:12px;}
+  .footer-brand p{color:var(--text-soft); max-width:34ch; font-size:14px;}
+  .footer-col h4{
+    font-family:'General Sans', sans-serif; font-size:12px;
+    text-transform:uppercase; letter-spacing:0.08em; color:var(--text-faint);
+    margin-bottom:18px;
+  }
+  .footer-col ul{list-style:none;}
+  .footer-col li{margin-bottom:12px;}
+  .footer-col a{color:var(--text-soft); font-size:14px; transition:color .2s ease;}
+  .footer-col a:hover{color:var(--accent-2);}
+  .footer-bottom{
+    display:flex; justify-content:space-between; align-items:center;
+    padding-top:28px; position:relative; z-index:2;
+    font-size:13px; color:var(--text-faint);
+    flex-wrap:wrap; gap:12px;
+  }
+
+  /* ---------- lightbox ---------- */
+  .lightbox{
+    position:fixed; inset:0; z-index:2000;
+    background:rgba(0,0,0,0.85);
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none;
+    transition:opacity .35s ease;
+    padding:24px;
+  }
+  .lightbox.open{opacity:1; pointer-events:auto;}
+  .lightbox-panel{
+    background:var(--bg-elev);
+    border:1px solid var(--border);
+    border-radius:20px;
+    padding:44px;
+    max-width:560px; width:100%;
+    transform:scale(0.92); transition:transform .35s cubic-bezier(.16,1,.3,1);
+  }
+  .lightbox.open .lightbox-panel{transform:scale(1);}
+  .lightbox-close{
+    float:right; background:none; border:none; color:var(--text-soft);
+    font-size:20px; cursor:pointer;
+  }
+
+  /* ---------- responsive ---------- */
+  @media (max-width:980px){
+    .hero-grid{grid-template-columns:1fr;}
+    .cap-grid, .case-grid{grid-template-columns:1fr 1fr;}
+    .results-grid{grid-template-columns:1fr 1fr;}
+    .services-grid{grid-template-columns:1fr 1fr;}
+    .contact-grid{grid-template-columns:1fr;}
+    .form-row{grid-template-columns:1fr;}
+  }
+  @media (max-width:680px){
+    .nav-links{display:none;}
+    .cap-grid, .case-grid, .results-grid, .services-grid{grid-template-columns:1fr;}
+    .hero-stats{gap:28px; flex-wrap:wrap;}
+    .contact-section{padding:40px 24px;}
+    .footer-top{flex-direction:column;}
+  }
+</style>
+</head>
+<body>
+
+<div class="scroll-progress" id="scrollProgress"></div>
+<div class="cursor-glow" id="cursorGlow"></div>
+
+<nav>
+  <div class="wrap nav-inner">
+    <div class="logo">Amaticoo<span>.</span></div>
+    <ul class="nav-links">
+      <li><a href="#capabilities">Capabilities</a></li>
+      <li><a href="#systems">Systems Built</a></li>
+      <li><a href="#services">Services</a></li>
+      <li><a href="#faq">FAQ</a></li>
+    </ul>
+    <a href="#contact" class="nav-cta magnetic">Book a Discovery Call</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div id="particles"></div>
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow reveal">Available for new builds this month</div>
+      <h1 class="hero-title reveal reveal-delay-1">We Turn Manual Work Into <span class="accent-text">Systems That Run Without You.</span></h1>
+      <p class="hero-sub reveal reveal-delay-2">AI-powered automations built with Claude and n8n — for founders and teams done doing reporting, content, and ops by hand.</p>
+      <div class="hero-ctas reveal reveal-delay-3">
+        <a href="#contact" class="btn btn-primary magnetic">Book a Discovery Call</a>
+        <a href="#systems" class="btn btn-ghost magnetic">View Systems Built</a>
+      </div>
+      <div class="hero-stats reveal reveal-delay-3">
+        <div>
+          <div class="stat-num" data-count="5" data-suffix="–7 Day">0</div>
+          <div class="stat-label">Delivery Window</div>
+        </div>
+        <div>
+          <div class="stat-num" data-count="14" data-suffix=" Day">0</div>
+          <div class="stat-label">Post-Launch Support</div>
+        </div>
+        <div>
+          <div class="stat-num" data-count="3" data-suffix=" Tiers">0</div>
+          <div class="stat-label">Fixed-Scope Pricing</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="preview-panel reveal reveal-delay-2 magnetic" id="previewPanel">
+      <div class="preview-label">
+        <span class="rec">Live System</span>
+        <span>Amaticoo / Preview</span>
+      </div>
+      <div class="flow">
+        <div class="flow-line"></div>
+        <div class="flow-signal"></div>
+        <div class="flow-nodes">
+          <div class="flow-node">
+            <div class="flow-dot"></div>
+            <div class="flow-node-label">Input</div>
+            <div class="flow-node-sub">Sheets / CSV / API</div>
+          </div>
+          <div class="flow-node">
+            <div class="flow-dot"></div>
+            <div class="flow-node-label">n8n</div>
+            <div class="flow-node-sub">routing + logic</div>
+          </div>
+          <div class="flow-node">
+            <div class="flow-dot"></div>
+            <div class="flow-node-label">Claude</div>
+            <div class="flow-node-sub">analysis / writing</div>
+          </div>
+          <div class="flow-node">
+            <div class="flow-dot"></div>
+            <div class="flow-node-label">Output</div>
+            <div class="flow-node-sub">delivered live</div>
+          </div>
+        </div>
+      </div>
+      <div class="preview-caption">This is the exact pipeline shape behind every Amaticoo build — click to see how a project actually moves through it.</div>
+    </div>
+  </div>
+</section>
+
+<div class="marquee-wrap">
+  <div class="marquee-label gs">Built with tools you already trust</div>
+  <div class="marquee-track" id="marqueeTrack">
+    <div class="marquee-item"><span class="dot"></span>Claude API</div>
+    <div class="marquee-item"><span class="dot"></span>n8n</div>
+    <div class="marquee-item"><span class="dot"></span>Python</div>
+    <div class="marquee-item"><span class="dot"></span>LangChain</div>
+    <div class="marquee-item"><span class="dot"></span>Streamlit</div>
+    <div class="marquee-item"><span class="dot"></span>Power BI</div>
+    <div class="marquee-item"><span class="dot"></span>Google Gemini</div>
+    <div class="marquee-item"><span class="dot"></span>SQL</div>
+  </div>
+</div>
+
+<section id="capabilities">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-eyebrow">What we build</div>
+      <h2 class="section-title">Six ways automation earns back your time</h2>
+      <p class="section-desc">Each capability below is a building block — most projects combine two or three of these into one working system.</p>
+    </div>
+    <div class="cap-grid">
+      <div class="cap-card reveal" data-tilt><div class="cap-icon">⚡</div><h3>Reporting Automation</h3><p>Raw data in, plain-English report out — no more manual weekly exports.</p></div>
+      <div class="cap-card reveal" data-tilt><div class="cap-icon">✦</div><h3>AI Content Ops</h3><p>Repurpose one input into multiple content formats automatically.</p></div>
+      <div class="cap-card reveal" data-tilt><div class="cap-icon">◆</div><h3>Support Triage</h3><p>Incoming messages classified, routed, and drafted before a human touches them.</p></div>
+      <div class="cap-card reveal" data-tilt><div class="cap-icon">▲</div><h3>Data Dashboards</h3><p>Live Power BI / Streamlit views instead of static monthly spreadsheets.</p></div>
+      <div class="cap-card reveal" data-tilt><div class="cap-icon">◎</div><h3>Lead Routing</h3><p>New leads scored, tagged, and sent to the right owner automatically.</p></div>
+      <div class="cap-card reveal" data-tilt><div class="cap-icon">✧</div><h3>GenAI Assistants</h3><p>RAG-based assistants that answer from your own documents and data.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="systems">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-eyebrow">Proof of capability</div>
+      <h2 class="section-title">Systems we've actually built</h2>
+      <p class="section-desc">Real, deployed work — not mockups. Click any card for a closer look.</p>
+    </div>
+    <div class="case-grid">
+      <div class="case-card reveal" data-title="House Price Prediction Engine" data-desc="A regression model trained on real housing data, shipped as a live Streamlit app — not just a notebook. This is the shape every client build takes: model in, usable interface out." data-tags="scikit-learn, streamlit, deployed">
+        <div class="case-thumb"><div class="mini-flow"><div class="mini-dot"></div><div class="mini-dot"></div><div class="mini-dot"></div></div></div>
+        <div class="case-meta"><span>ML · Deployed</span></div>
+        <h3>House Price Prediction Engine</h3>
+        <p>Regression model deployed as a live, usable Streamlit application.</p>
+        <div class="case-tags"><span>scikit-learn</span><span>streamlit</span></div>
+      </div>
+      <div class="case-card reveal" data-title="IPL Analytics Dashboard" data-desc="A full Power BI dashboard turning raw match data into decision-ready visuals — the same pattern used to give founders a live view of their business instead of a static monthly PDF." data-tags="Power BI, DAX, SQL">
+        <div class="case-thumb"><div class="mini-flow"><div class="mini-dot"></div><div class="mini-dot"></div><div class="mini-dot"></div></div></div>
+        <div class="case-meta"><span>Dashboard · Live</span></div>
+        <h3>IPL Analytics Dashboard</h3>
+        <p>Raw match data turned into a decision-ready live dashboard.</p>
+        <div class="case-tags"><span>Power BI</span><span>DAX</span></div>
+      </div>
+      <div class="case-card reveal" data-title="GenAI Research Assistant" data-desc="A LangChain + Gemini pipeline that retrieves, reasons over, and summarizes documents automatically — the core architecture behind every AI assistant build we ship." data-tags="LangChain, Gemini API, RAG">
+        <div class="case-thumb"><div class="mini-flow"><div class="mini-dot"></div><div class="mini-dot"></div><div class="mini-dot"></div></div></div>
+        <div class="case-meta"><span>GenAI · In progress</span></div>
+        <h3>GenAI Research Assistant</h3>
+        <p>Retrieval-augmented pipeline for automatic document analysis.</p>
+        <div class="case-tags"><span>LangChain</span><span>RAG</span></div>
+      </div>
+      <div class="case-note reveal">More systems added here as each one ships.</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="results-grid">
+      <div class="result-card reveal"><div class="result-num" data-count="5" data-suffix="-7 Days">0</div><div class="result-label">Typical Delivery</div></div>
+      <div class="result-card reveal reveal-delay-1"><div class="result-num" data-count="14" data-suffix=" Days">0</div><div class="result-label">Support Included</div></div>
+      <div class="result-card reveal reveal-delay-2"><div class="result-num" data-count="100" data-suffix="%">0</div><div class="result-label">Fixed-Price, No Hourly</div></div>
+      <div class="result-card reveal reveal-delay-3"><div class="result-num" data-count="3" data-suffix=" Tiers">0</div><div class="result-label">Starter to Full Build</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="services">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-eyebrow">How we can help</div>
+      <h2 class="section-title">Every service, one fixed-scope engagement</h2>
+    </div>
+    <div class="services-grid">
+      <div class="service-card reveal"><div class="service-icon">⚙</div><h3>Workflow Automation</h3><p>End-to-end n8n workflows for any repetitive process.</p></div>
+      <div class="service-card reveal"><div class="service-icon">✎</div><h3>AI Content & Analysis</h3><p>Claude-powered writing, tagging, and summarization pipelines.</p></div>
+      <div class="service-card reveal"><div class="service-icon">▤</div><h3>Data Dashboards</h3><p>Power BI and Streamlit builds for live decision-making.</p></div>
+      <div class="service-card reveal"><div class="service-icon">↻</div><h3>Reporting Automation</h3><p>Turn manual weekly/monthly reports into a one-click system.</p></div>
+      <div class="service-card reveal"><div class="service-icon">◈</div><h3>AI Chat Assistants</h3><p>Custom assistants trained on your own docs and data.</p></div>
+      <div class="service-card reveal"><div class="service-icon">⌁</div><h3>GenAI / RAG Pipelines</h3><p>Retrieval-based systems for search, Q&A, and research.</p></div>
+      <div class="service-card reveal"><div class="service-icon">➤</div><h3>Lead & Support Routing</h3><p>Automatic classification and routing of inbound messages.</p></div>
+      <div class="service-card reveal"><div class="service-icon">▣</div><h3>Documentation & Handover</h3><p>Every system delivered with docs your team can actually use.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-eyebrow">Questions</div>
+      <h2 class="section-title">Before you book a call</h2>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item reveal">
+        <button class="faq-q">How long does a build take? <span class="faq-icon"></span></button>
+        <div class="faq-a">Most builds ship in 5–7 business days, depending on tier. Starter builds can be same-week.</div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-q">How many revisions are included? <span class="faq-icon"></span></button>
+        <div class="faq-a">Growth and Scale tiers include one round of revisions. Starter is scoped tightly enough that revisions usually aren't needed.</div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-q">Do I need to know how to code to use what you build? <span class="faq-icon"></span></button>
+        <div class="faq-a">No. Every system ships with plain-language documentation so your team can run and adjust it without touching code.</div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-q">Can you build a custom AI assistant on our own data? <span class="faq-icon"></span></button>
+        <div class="faq-a">Yes — this is a Scale-tier build using retrieval (RAG) over your documents or database, connected to Claude.</div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-q">What's your pricing model? <span class="faq-icon"></span></button>
+        <div class="faq-a">Three fixed-scope tiers — Starter, Growth, and Scale — priced flat, not hourly. No retainer required to start.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="wrap">
+    <div class="contact-section reveal">
+      <div class="contact-grid">
+        <div>
+          <div class="section-eyebrow">Get started</div>
+          <h2>Let's Build Your System</h2>
+          <p class="section-desc">Tell us what's eating your team's time. If automation isn't the right fix, we'll tell you that too.</p>
+        </div>
+        <div>
+          <form id="contactForm">
+            <div class="form-row">
+              <div class="field"><label>Name</label><input type="text" required></div>
+              <div class="field"><label>Email</label><input type="email" required></div>
+            </div>
+            <div class="form-row">
+              <div class="field"><label>Company</label><input type="text"></div>
+              <div class="field">
+                <label>Project Type</label>
+                <select>
+                  <option>Workflow Automation</option>
+                  <option>AI Content / Analysis</option>
+                  <option>Data Dashboard</option>
+                  <option>AI Chat Assistant</option>
+                  <option>Not sure yet</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label>Budget</label>
+              <select>
+                <option>$100 — Starter</option>
+                <option>$250 — Growth</option>
+                <option>$450 — Scale</option>
+                <option>Not sure yet</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Message</label>
+              <textarea placeholder="What's the manual process you want gone?"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary submit-btn magnetic">Start Your Project</button>
+          </form>
+          <div class="form-success" id="formSuccess">
+            <div class="check">✓</div>
+            <h3 style="font-size:20px; margin-bottom:8px;">Message sent</h3>
+            <p style="color:var(--text-soft); font-size:14px;">We'll reply within one business day to schedule your discovery call.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-glow"></div>
+  <div class="wrap">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <h3>Amaticoo<span style="color:var(--accent);">.</span></h3>
+        <p>AI-powered automation systems for teams done doing things manually.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Navigate</h4>
+        <ul>
+          <li><a href="#services">Services</a></li>
+          <li><a href="#systems">Systems Built</a></li>
+          <li><a href="#faq">FAQ</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Connect</h4>
+        <ul>
+          <li><a href="https://instagram.com/a.maticoo" target="_blank" rel="noopener">Instagram</a></li>
+          <li><a href="#">LinkedIn</a></li>
+          <li><a href="#">GitHub</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Amaticoo</span>
+      <span>Working with clients worldwide</span>
+    </div>
+  </div>
+</footer>
+
+<div class="lightbox" id="lightbox">
+  <div class="lightbox-panel">
+    <button class="lightbox-close" id="lightboxClose">✕</button>
+    <h3 id="lightboxTitle" style="font-size:22px; margin-bottom:14px; margin-top:8px;"></h3>
+    <p id="lightboxDesc" style="color:var(--text-soft); font-size:15px; margin-bottom:20px;"></p>
+    <div class="case-tags" id="lightboxTags"></div>
+  </div>
+</div>
+
+<script>
+  // scroll progress
+  const scrollProgress = document.getElementById('scrollProgress');
+  window.addEventListener('scroll', () => {
+    const h = document.documentElement;
+    const pct = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+    scrollProgress.style.width = pct + '%';
+  });
+
+  // cursor glow
+  const glow = document.getElementById('cursorGlow');
+  window.addEventListener('mousemove', e => {
+    glow.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%,-50%)`;
+  });
+
+  // magnetic buttons
+  document.querySelectorAll('.magnetic').forEach(el => {
+    el.addEventListener('mousemove', e => {
+      const r = el.getBoundingClientRect();
+      const x = e.clientX - r.left - r.width/2;
+      const y = e.clientY - r.top - r.height/2;
+      el.style.transform = `translate(${x*0.25}px, ${y*0.4}px)`;
+    });
+    el.addEventListener('mouseleave', () => { el.style.transform = 'translate(0,0)'; });
+  });
+
+  // card mouse-follow glow position
+  document.querySelectorAll('.cap-card').forEach(card => {
+    card.addEventListener('mousemove', e => {
+      const r = card.getBoundingClientRect();
+      card.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+      card.style.setProperty('--my', (e.clientY - r.top) + 'px');
+    });
+  });
+
+  // scroll reveal
+  const revealEls = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting){ entry.target.classList.add('visible'); }
+    });
+  }, {threshold:0.15});
+  revealEls.forEach(el => io.observe(el));
+
+  // count-up
+  const counters = document.querySelectorAll('[data-count]');
+  const countIO = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting){
+        const el = entry.target;
+        const target = parseInt(el.getAttribute('data-count'));
+        const suffix = el.getAttribute('data-suffix') || '';
+        let cur = 0;
+        const step = Math.max(1, Math.ceil(target/40));
+        const tick = () => {
+          cur += step;
+          if(cur >= target){ el.textContent = target + suffix; }
+          else { el.textContent = cur + suffix; requestAnimationFrame(tick); }
+        };
+        tick();
+        countIO.unobserve(el);
+      }
+    });
+  }, {threshold:0.5});
+  counters.forEach(el => countIO.observe(el));
+
+  // FAQ accordion
+  document.querySelectorAll('.faq-q').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const item = btn.parentElement;
+      const wasOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+      if(!wasOpen) item.classList.add('open');
+    });
+  });
+
+  // lightbox for case cards + preview panel
+  const lightbox = document.getElementById('lightbox');
+  const lbTitle = document.getElementById('lightboxTitle');
+  const lbDesc = document.getElementById('lightboxDesc');
+  const lbTags = document.getElementById('lightboxTags');
+
+  function openLightbox(title, desc, tags){
+    lbTitle.textContent = title;
+    lbDesc.textContent = desc;
+    lbTags.innerHTML = (tags||'').split(',').map(t => `<span>${t.trim()}</span>`).join('');
+    lightbox.classList.add('open');
+  }
+  document.querySelectorAll('.case-card').forEach(card => {
+    card.addEventListener('click', () => {
+      openLightbox(card.dataset.title, card.dataset.desc, card.dataset.tags);
+    });
+  });
+  document.getElementById('previewPanel').addEventListener('click', () => {
+    openLightbox('The Amaticoo Pipeline', 'Every build — Starter, Growth, or Scale — follows this same shape: your raw input triggers an n8n workflow, Claude handles the thinking (analysis, writing, classification), and the result lands wherever your team already works. No new tools for your team to learn.', 'n8n, Claude API, Automated');
+  });
+  document.getElementById('lightboxClose').addEventListener('click', () => lightbox.classList.remove('open'));
+  lightbox.addEventListener('click', e => { if(e.target === lightbox) lightbox.classList.remove('open'); });
+
+  // particles
+  const particleContainer = document.getElementById('particles');
+  for(let i=0; i<24; i++){
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = Math.random()*100 + '%';
+    p.style.bottom = '0';
+    p.style.animationDuration = (10 + Math.random()*10) + 's';
+    p.style.animationDelay = (Math.random()*10) + 's';
+    particleContainer.appendChild(p);
+  }
+
+  // marquee duplicate for seamless loop
+  const track = document.getElementById('marqueeTrack');
+  track.innerHTML += track.innerHTML;
+
+  // contact form success
+  document.getElementById('contactForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    this.style.display = 'none';
+    document.getElementById('formSuccess').classList.add('show');
+  });
+</script>
+
+</body>
+</html>
